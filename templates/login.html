@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+
+<head>
+	<title>TekChef - Login</title>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="keywords" content="">
+	<meta name="author" content="">
+	<meta name="robots" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Salero:Restaurant Admin Bootstrap 5 Template">
+	<meta property="og:title" content="Salero:Restaurant Admin Bootstrap 5 Template">
+	<meta property="og:description" content="Salero:Restaurant Admin Bootstrap 5 Template">
+	<meta property="og:image" content="https://salero.dexignzone.com/xhtml/social-image.png">
+	<meta name="format-detection" content="telephone=no">
+
+	<!-- PAGE TITLE HERE -->
+	<title>TekChef</title>
+
+	<!-- FAVICONS ICON -->
+	<link rel="shortcut icon" type="image/png" href="images/favicon.png">
+	<link href="{% static '/vendor/bootstrap-select/dist/css/bootstrap-select.min.css' %}" rel="stylesheet">
+	<link href="{% static 'vendor/bootstrap-datetimepicker/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet">
+	<link href="{% static '/css/style.css' %}" rel="stylesheet">
+    <script src="https://unpkg.com/vue@2.5.16/dist/vue.min.js"></script>
+
+</head>
+
+<body class="vh-100">
+	<div class="page-wraper">
+
+		<!-- Content -->
+		<div class="browse-job login-style3">
+			<!-- Coming Soon -->
+			<div class="bg-img-fix overflow-hidden"
+				style="background:#fff url(./../static/images/background/bg6.jpg); height: 100vh;">
+				<div class="row gx-0">
+					<div class="col-xl-4 col-lg-5 col-md-6 col-sm-12 vh-100 bg-login ">
+						<div id="mCSB_1" class="mCustomScrollBox mCS-light mCSB_vertical mCSB_inside"
+							style="max-height: 653px;" tabindex="0">
+							<div id="mCSB_1_container" class="mCSB_container" style="position:relative; top:0; left:0;"
+								dir="ltr">
+								<div class="login-form style-2">
+
+
+									<div class="card-body">
+										<div class="logo-header" align="center">
+											<a href="#" class="logo"><img
+													src="./../static/images/logo/logofull-white_tek.png" alt=""
+													class="width-230 light-logo" style="max-width: 250px;"></a>
+										</div>
+										<nav>
+											<div class="nav nav-tabs border-bottom-0" id="nav-tab" role="tablist">
+												<div class="tab-content w-100" id="nav-tabContent">
+													<div class="tab-pane fade show active" id="nav-personal"
+														role="tabpanel" aria-labelledby="nav-personal-tab">
+														<form class=" dz-form pb-3"  action="{% url 'login' %}" method="POST">
+															{% csrf_token %}
+															<div class="dz-separator-outer m-b5">
+																<div class="dz-separator bg-primary style-liner"></div>
+															</div>
+															<p>Ingresa tu Correo y tu contraseña.</p>
+															<div class="form-group mb-3">
+																<input type="email" class="form-control" name="username" id="inputEmailAddress"
+																	placeholder="Ingresar Correo">
+															</div>
+															<div class="form-group mb-3">
+																<input type="password" class="form-control" placeholder="Ingresar Contraseña"  name="password" id="inputChoosePassword">
+															</div>
+															<div class="form-group mb-5 forget-main" style="display: grid; align-items: center;">
+																<button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+																<!-- <span class="form-check d-inline-block">
+																	<input type="checkbox" class="form-check-input"
+																		id="check1" name="example1">
+																	<label class="form-check-label"
+																		for="check1">Remember me</label>
+																</span> -->
+															</div>
+														</form>
+													</div>
+												</div>
+
+											</div>
+										</nav>
+									</div>
+									<div class="card-footer">
+										<div class=" bottom-footer clearfix m-t10 m-b20 row text-center">
+											<div class="col-lg-12 text-center">
+												<p class="mb-0">TekChef @2023 | Desarrollado Por: <a href="https://safeware.cl"
+													target="_blank">SafeWare</a>
+											</div>
+										</div>
+									</div>
+
+								</div>
+							</div>
+							<div id="mCSB_1_scrollbar_vertical"
+								class="mCSB_scrollTools mCSB_1_scrollbar mCS-light mCSB_scrollTools_vertical"
+								style="display: block;">
+								<div class="mCSB_draggercontainer">
+									<div id="mCSB_1_dragger_vertical" class="mCSB_dragger"
+										style="position: absolute; min-height: 0px; display: block; height: 652px; max-height: 643px; top: 0px;">
+										<div class="mCSB_dragger_bar" style="line-height: 0px;"></div>
+										<div class="mCSB_draggerRail"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Full Blog Page Contant -->
+		</div>
+		<!-- Content END-->
+	</div>
+	<!-- Required vendors -->
+	<script src="{% static '/vendor/global/global.min.js' %}"></script>
+	<script src="{% static '/vendor/chart.js/Chart.bundle.min.js' %}"></script>
+	<script src="{% static '/vendor/bootstrap-select/dist/js/bootstrap-select.min.js' %}"></script>
+	<script src="{% static '/vendor/apexchart/apexchart.js' %}"></script>
+
+	<!-- JS for dotted map -->
+	<script src="{% static '/vendor/dotted-map/js/contrib/jquery.smallipop-0.3.0.min.js' %}"></script>
+	<script src="{% static '/vendor/dotted-map/js/contrib/suntimes.js' %}"></script>
+	<script src="{% static '/vendor/dotted-map/js/contrib/color-0.4.1.js' %}"></script>
+
+	<script src="{% static '/vendor/dotted-map/js/world.js' %}"></script>
+
+	<!-- Vue -->
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+
+	<!-- Vectormap -->
+	<script src="{% static '/vendor/jqvmap/js/jquery.vmap.min.js' %}"></script>
+	<script src="{% static '/vendor/jqvmap/js/jquery.vmap.world.js' %}"></script>
+	<script src="{% static '/vendor/jqvmap/js/jquery.vmap.usa.js' %}"></script>
+	<script src="{% static '/js/custom.js' %}"></script>
+	<script src="{% static '/js/deznav-init.js' %}"></script>
+</body>
+
+</html>

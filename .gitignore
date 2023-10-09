@@ -1,0 +1,3 @@
+mysql-data/
+db.sqlite3
+conf\.env
