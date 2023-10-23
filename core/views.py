@@ -8,11 +8,12 @@ from rest_framework import authentication, permissions
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login as login_f
 from django.contrib.auth import logout, authenticate
+
 import requests
+from django.views import View
 import json
 from core.models import *
 # Create your views here.
-
 
 
 def index(request):
@@ -21,18 +22,27 @@ def index(request):
     return render(request, template_name, context)
 
 
-
 def Pokemon_tcg(request):
     template_name = "pokemon_tcg.html"
     context = {}
     return render(request, template_name, context)
+
 
 def Pokemon_battle(request):
     template_name = "pokemon_battle.html"
     context = {}
     return render(request, template_name, context)
 
+
 def Pokemon(request):
     template_name = "pokemon.html"
     context = {}
     return render(request, template_name, context)
+
+
+def CreadorCarta(request):
+    template_name = "crear_carta.html"
+    context = {}
+    return render(request, template_name, context)
+
+

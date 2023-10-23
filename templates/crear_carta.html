@@ -1,0 +1,72 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div id="app">
+    <h1>Crear una nueva carta</h1>
+    <form @submit.prevent="createCard">
+      
+        
+        <div>
+            <label for="precio">Precio:</label>
+            <input type="text" id="collection" v-model="cardData.price">
+        </div>
+        <!-- Agrega más campos aquí para otros datos de la carta -->
+        <div>
+            <button type="submit">Crear Carta</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
+
+
+
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"></script>
+<script type="text/javascript" src="/templates/components/pagination.js"></script>
+<script type="text/javascript" src="/templates/components/dropdown.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            cardData :{
+                "nombre": "Espada de Fuego",
+                "rareza": "Épica",
+                "version": "Segunda Edición",
+                "precio": 20.00
+            },
+           
+        },
+        methods: {
+            createCard() {
+                let data = JSON.stringify(this.cardData)
+                console.log(this.cardData)
+       
+                
+                const header_data = {
+                    'Content-Type': 'application/json'
+                };
+
+                // Realiza la solicitud POST a tu API
+                axios.post("/api/crear_carta/",data,{ headers: header_data })
+                    .then((response) => {
+                        // Comprobar si se registró correctamente o si hubo un error
+                        if (response.data.message) {
+                            // Mostrar mensaje de éxito
+                            console.log(response.data.message);
+                            // Limpia los campos del formulario o realiza otras acciones necesarias
+                            this.cardData.name = '';
+                            this.cardData.collection = '';
+                            // Limpia otros campos según sea necesario
+                        } else if (response.data.error) {
+                            // Mostrar mensaje de error en el frontend
+                            console.error(response.data.error);
+                        }
+                    });
+            }
+        }
+    });
+</script>
+{% endblock js %}

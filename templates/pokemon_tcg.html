@@ -37,14 +37,25 @@
 
 {% block content %}
 <div id="app">
-	<div class="content-body">
+	<div class="container">
 		<!-- container starts -->
 		<template>
 			<div>
 			  <label>Buscador pokemon</label>
-			  <input v-model="pokemon_name" type="text">
-			  
-			  <button @click="fetchData()">Buscar Pokémon</button>
+			  <div class="input-group mb-3">
+				<input type="text" v-model="pokemon_name" @keyup.enter="fetchData()" class="form-control" placeholder="Buscar pokemon" aria-label="" aria-describedby="basic-addon1">
+				<button @click="fetchData" class="btn btn-primary " type="button">
+					Buscar Pokémon
+				</button>
+			  </div>
+			  <select v-model="orden">
+      <option value="asc">De menor a mayor precio</option>
+      <option value="desc">De mayor a menor precio</option>
+      <option value="none">Sin ordenar</option>
+    </select>
+		  
+			  <button @click="ordenarPokemon">Ordenar</button>
+			 
 		  
 			  <div class="row">
 				<div class="col-md-12">
@@ -59,7 +70,7 @@
 						</tr>
 					  </thead>
 					  <tbody>
-						<tr v-for="(poke, index) in pokemon" :key="index">
+						<tr v-for="(poke, index) in pokemonOrdenado" :key="index">
 						  <td>[[ poke.name ]]</td>
 						  <td>
 							<img :src="poke.images.small" alt="Imagen de Pokémon" style="width: 100px; height: auto;" />
@@ -74,6 +85,7 @@
 			  </div>
 			  <a class="btn btn-primary"  href="{% url 'pokemon_battle' %}"> Batalla</a>
 			</div>
+			<v-pagination :page="currentPage" :per-page="perPage" :total="pokemon.length" @page-change="changePage"></v-pagination>
 
 		</template>
 		  
@@ -122,10 +134,18 @@
 				"Rare Shiny GX": "Rara Brillante GX",
 				"Rare Ultra": "Rara Ultra",
 				"Uncommon": "Poco Común"
+			},
+			currentPage: 1,
+ 			perPage: 10,
+			orden: 'asc',
 			}
-			};
+			
 		},
 		computed: {
+			pokemonOrdenado() {
+			return this.pokemon.slice(); // Devuelve una copia ordenada de la lista original
+			},
+		
 			
 		},
 		mounted() {
@@ -135,6 +155,9 @@
             console.log("hola")
         },
 		methods: {
+			changePage(newPage) {
+				this.currentPage = newPage;
+			},
 			fetchData() {
 				const apiUrl = `https://api.pokemontcg.io/v2/cards?q=name:${this.pokemon_name}`;
 				const apiKey = "1b329673-ded5-44d8-a42d-5187f70139e9";
@@ -162,19 +185,42 @@
 					// Manejar el error aquí
 					});
 			},
-			 chilean_pesos(usd) {
-				if (typeof usd === 'string' && !isNaN(usd)) {
-					usd = parseFloat(usd); 
-				}
+			chilean_pesos(usd) {
+			if (typeof usd === 'string' && !isNaN(usd)) {
+				usd = parseFloat(usd); 
+			}
 
-				if (typeof usd === 'number' && !isNaN(usd)) {
-					usd = usd * 800; 
+			if (typeof usd === 'number' && !isNaN(usd)) {
+				usd = usd * 800; 
 
-					return usd.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
-				} else {
-					return "Entrada no válida"; 
-				}
-				}
+				return usd.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+			} else {
+				return "Entrada no válida"; 
+			}
+			},
+			getPokemonPrice(pokemon) {
+      if (pokemon.cardmarket && pokemon.cardmarket.prices && pokemon.cardmarket.prices.averageSellPrice) {
+        return pokemon.cardmarket.prices.averageSellPrice;
+      }
+      return NaN;
+    },
+    ordenarPokemon() {
+      this.pokemon.sort((a, b) => {
+        const priceA = this.getPokemonPrice(a);
+        const priceB = this.getPokemonPrice(b);
+        
+        if (!isNaN(priceA) && !isNaN(priceB)) {
+			if(this.orden ==='asc' ){
+				return priceA - priceB;
+			}else if(this.orden ==='desc'){
+				return priceB - priceA;
+			}
+			else{
+				this.fetchData()
+			}
+        } 
+      });
+    },
 		},
 	});
 </script>
