@@ -33,6 +33,8 @@ class Precio(models.Model):
     carta = models.ForeignKey(Carta, on_delete=models.CASCADE)
     rareza = models.ForeignKey(Rareza, on_delete=models.CASCADE)
     version = models.ForeignKey(Version, on_delete=models.CASCADE)
+    code = models.CharField(max_length=255, null=True, blank=True) 
+    imagen = models.CharField(max_length=255, null=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):

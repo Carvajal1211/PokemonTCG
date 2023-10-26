@@ -48,44 +48,66 @@
 					Buscar Pokémon
 				</button>
 			  </div>
-			  <select v-model="orden">
-      <option value="asc">De menor a mayor precio</option>
-      <option value="desc">De mayor a menor precio</option>
-      <option value="none">Sin ordenar</option>
-    </select>
+			  	<select v-model="orden">
+				<option value="asc">De menor a mayor precio</option>
+				<option value="desc">De mayor a menor precio</option>
+				<option value="none">Sin ordenar</option>
+				</select>
 		  
 			  <button @click="ordenarPokemon">Ordenar</button>
-			 
-		  
 			  <div class="row">
-				<div class="col-md-12">
-				  <div class="card mb-4">
-					<table>
-					  <thead>
-						<tr>
-						  <th>Nombre</th>
-						  <th>Imagen</th>
-						  <th>Precio</th>
-						  <th>Rareza</th>
-						</tr>
-					  </thead>
-					  <tbody>
-						<tr v-for="(poke, index) in pokemonOrdenado" :key="index">
-						  <td>[[ poke.name ]]</td>
-						  <td>
-							<img :src="poke.images.small" alt="Imagen de Pokémon" style="width: 100px; height: auto;" />
-							<td>[[ chilean_pesos(poke.cardmarket) && chilean_pesos(poke.cardmarket.prices) && chilean_pesos(poke.cardmarket.prices.averageSellPrice) || 'Estamos trabajando para usted' ]]</td>
-						  </td>
-						  <td>[[ rarezaDict[poke.rarity] || poke.rarity ]]</td>
-						</tr>
-					  </tbody>
-					</table>
+				<div class="col-md-3 d-flex align-items-stretch h-100" v-for="(poke, index) in pokemonOrdenado" :key="index">
+				  <div class="card mb-4 clickable-card">
+					<div class="card-body p-2">
+					  <div class="row">
+						<div class="col-12">
+						  <img :src="poke.images.small" alt="Imagen" class="w-100 pb-4" />
+						</div>
+					  </div>
+					  <div class="row">
+						<div class="col-12">
+						  <h6 class="d-block pb-2 fs-4" style="font-size: 13px">[[ poke.name ]] [[poke.number]]/[[poke.set.printedTotal]]</h6>
+						  <h6 class="d-block pb-2 fs-4" style="font-size: 13px">
+							Precio: [[ chilean_pesos(poke.cardmarket) && chilean_pesos(poke.cardmarket.prices) && chilean_pesos(poke.cardmarket.prices.averageSellPrice) || 'Estamos trabajando para usted' ]]
+						  </h6>
+						  <button type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white" style="background-color: green;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small)">
+							Vender
+						  </button>
+						</div>
+					  </div>
+					</div>
 				  </div>
 				</div>
 			  </div>
-			  <a class="btn btn-primary"  href="{% url 'pokemon_battle' %}"> Batalla</a>
 			</div>
-			<v-pagination :page="currentPage" :per-page="perPage" :total="pokemon.length" @page-change="changePage"></v-pagination>
+			<!-- Modal -->
+			
+			<div class="modal fade mt-5" id="CrearCarta" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-xl">
+				  <div class="modal-content">
+					<div class="modal-header">
+		
+					  <h5 class="modal-title" id="exampleModalLabel" >Lorem ipsum dolor sit amet.</h5>
+					  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="col-12 py-3">
+					  <form class="position-relative w-100">
+						<div class="row">
+							 <div class="col-12 col-md-6 mb-2">
+								<label for="rut" class="form-label">Precio :</label>
+								<input type="text" class="form-control" v-model=crear_carta.precio>
+							</div>
+
+						</div>
+						
+					  </form>
+					</div>
+					<div class="modal-footer">
+					  <button type="button" class="btn btn-primary" @click="Crear_carta()" >Publicar Carta</button>
+					</div>
+				  </div>
+				</div>
+			  </div>
 
 		</template>
 		  
@@ -110,6 +132,8 @@
 			return {
 			pokemon: [],
 			pokemon_name: "",
+			crear_carta: [
+			],
 			rarezaDict:{
 				"Amazing Rare": "Increíble Rara",
 				"Common": "Común",
@@ -204,12 +228,44 @@
       }
       return NaN;
     },
+	Carta_modal(numero,totalSet,nombre,rareza,imagen){
+		this.crear_carta.code = numero + "/" + totalSet
+		this.crear_carta.name = nombre
+		this.crear_carta.rarity = rareza
+		this.crear_carta.image = imagen
+		console.log(this.crear_carta)
+	},
+	createCard() {
+		console.log(this.crear_carta)
+
+		
+		const header_data = {
+			'Content-Type': 'application/json'
+		};
+
+		// Realiza la solicitud POST a tu API
+		axios.post("/api/crear_carta/",data,{ headers: header_data })
+			.then((response) => {
+				// Comprobar si se registró correctamente o si hubo un error
+				if (response.data.message) {
+					// Mostrar mensaje de éxito
+					console.log(response.data.message);
+					// Limpia los campos del formulario o realiza otras acciones necesarias
+					this.cardData.name = '';
+					this.cardData.collection = '';
+					// Limpia otros campos según sea necesario
+				} else if (response.data.error) {
+					// Mostrar mensaje de error en el frontend
+					console.error(response.data.error);
+				}
+			});
+	},
     ordenarPokemon() {
-      this.pokemon.sort((a, b) => {
-        const priceA = this.getPokemonPrice(a);
-        const priceB = this.getPokemonPrice(b);
-        
-        if (!isNaN(priceA) && !isNaN(priceB)) {
+		this.pokemon.sort((a, b) => {
+		const priceA = this.getPokemonPrice(a);
+		const priceB = this.getPokemonPrice(b);
+
+		if (!isNaN(priceA) && !isNaN(priceB)) {
 			if(this.orden ==='asc' ){
 				return priceA - priceB;
 			}else if(this.orden ==='desc'){
@@ -218,10 +274,11 @@
 			else{
 				this.fetchData()
 			}
-        } 
-      });
-    },
-		},
+		} 
+	});	
+	},	
+	},
+	
 	});
 </script>
 

@@ -1,0 +1,247 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block css %}
+<style>
+	.icon-button {
+		border: none;
+		border-radius: 4px;
+		/* Ajusta según tus preferencias */
+		padding: 10px;
+		/* Ajusta según tus preferencias */
+		cursor: pointer;
+	}
+
+	.button-bag {
+		cursor: pointer;
+	}
+
+	.icon-button {
+		display: flex;
+		justify-content: center;
+		/* Centrar horizontalmente */
+		align-items: center;
+		/* Centrar verticalmente */
+	}
+
+	.btn-spaced {
+		margin-right: 2px;
+	}
+
+	body {
+		/* Establecemos la imagen de fondo y ajustamos los estilos */
+		background-image: url('/static/images/wallpaper-70.jpg');
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		background-position: center center;
+		height: 100vh;
+		/* Asegura que la imagen de fondo cubra toda la pantalla */
+	}
+</style>
+{% endblock css %}
+
+{% block content %}
+<div id="app">
+	<div class="container">
+		<!-- container starts -->
+		<template>
+			<div>
+				<label>Buscador pokemon</label>
+				<div class="input-group mb-3">
+					<input type="text" v-model="pokemon_name" @keyup.enter="fetchData()" class="form-control"
+						placeholder="Buscar pokemon" aria-label="" aria-describedby="basic-addon1">
+					<button @click="fetchData" class="btn btn-primary " type="button">
+						Buscar Pokémon
+					</button>
+				</div>
+				<select v-model="orden">
+					<option value="asc">De menor a mayor precio</option>
+					<option value="desc">De mayor a menor precio</option>
+					<option value="none">Sin ordenar</option>
+				</select>
+
+				<button @click="ordenarPokemon">Ordenar</button>
+				<div class="row">
+					<div class="col-md-3 d-flex align-items-stretch h-100" v-for="(poke, index) in pokemonOrdenado"
+						:key="index">
+						<div class="card mb-4 clickable-card">
+							<div class="card-body p-2">
+								<div class="row">
+									<div class="col-12">
+										<img :src="poke.images.small" alt="Imagen" class="w-100 pb-4" />
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-12">
+										<h6 class="d-block pb-2 fs-4" style="font-size: 13px">[[ poke.name ]]
+											[[poke.number]]/[[poke.set.printedTotal]]</h6>
+										<h6 class="d-block pb-2 fs-4" style="font-size: 13px">
+											Precio: [[ chilean_pesos(poke.cardmarket) &&
+											chilean_pesos(poke.cardmarket.prices) &&
+											chilean_pesos(poke.cardmarket.prices.averageSellPrice) || 'Estamos
+											trabajando para usted' ]]
+										</h6>
+										<button type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta"
+											class="btn btn-default btn-sm rounded-pill w-100 text-white"
+											style="background-color: grey;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity )">
+											Aún no hay publicaciones
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Modal -->
+			
+
+		</template>
+
+
+
+
+		<!-- container ends -->
+	</div>
+</div>
+{% endblock content %}
+
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"></script>
+<script type="text/javascript" src="/templates/components/pagination.js"></script>
+<script type="text/javascript" src="/templates/components/dropdown.js"></script>
+
+<script>
+	var app = new Vue({
+		el: '#app',
+		delimiters: ['[[', ']]'],
+		data() {
+			return {
+				pokemon: [],
+				crear_carta: [],
+				carta_modal: [],
+				pokemon_name: "",
+				rarezaDict: {
+					"Amazing Rare": "Increíble Rara",
+					"Common": "Común",
+					"LEGEND": "LEYENDA",
+					"Promo": "Promocional",
+					"Rare": "Rara",
+					"Rare ACE": "Rara ACE",
+					"Rare BREAK": "Rara BREAK",
+					"Rare Holo": "Rara Holo",
+					"Rare Holo EX": "Rara Holo EX",
+					"Rare Holo GX": "Rara Holo GX",
+					"Rare Holo LV.X": "Rara Holo LV.X",
+					"Rare Holo Star": "Rara Holo Estrella",
+					"Rare Holo V": "Rara Holo V",
+					"Rare Holo VMAX": "Rara Holo VMAX",
+					"Rare Prime": "Rara Prime",
+					"Rare Prism Star": "Rara Estrella Prisma",
+					"Rare Rainbow": "Rara Arcoíris",
+					"Rare Secret": "Rara Secreta",
+					"Rare Shining": "Rara Brillante",
+					"Rare Shiny": "Rara Brillante",
+					"Rare Shiny GX": "Rara Brillante GX",
+					"Rare Ultra": "Rara Ultra",
+					"Uncommon": "Poco Común"
+				},
+				currentPage: 1,
+				perPage: 10,
+				orden: 'asc',
+			}
+
+		},
+		computed: {
+			pokemonOrdenado() {
+				return this.pokemon.slice(); // Devuelve una copia ordenada de la lista original
+			},
+
+
+		},
+		mounted() {
+
+		},
+		created() {
+			console.log("hola")
+		},
+		methods: {
+			changePage(newPage) {
+				this.currentPage = newPage;
+			},
+			fetchData() {
+				const apiUrl = `https://api.pokemontcg.io/v2/cards?q=name:${this.pokemon_name}`;
+				const apiKey = "1b329673-ded5-44d8-a42d-5187f70139e9";
+
+				const headers = {
+					"X-Api-Key": apiKey,
+				};
+
+				axios
+					.get(apiUrl, { headers })
+					.then((response) => {
+						if (response.data && response.data.data && response.data.data.length > 0) {
+							this.pokemon = response.data.data;
+							console.log(this.pokemon);
+							// const precio = this.pokemon.cardmarket.prices.averageSellPrice * 800
+							// if (precio == null){
+							// 	const precio = this.pokemon.tcgplayer.prices.holofoil.market
+							// }
+						} else {
+							console.log("No se han encontrado Pokémon");
+						}
+					})
+					.catch((error) => {
+						console.error("Error:", error);
+						// Manejar el error aquí
+					});
+			},
+			chilean_pesos(usd) {
+				if (typeof usd === 'string' && !isNaN(usd)) {
+					usd = parseFloat(usd);
+				}
+
+				if (typeof usd === 'number' && !isNaN(usd)) {
+					usd = usd * 800;
+
+					return usd.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+				} else {
+					return "Entrada no válida";
+				}
+			},
+			getPokemonPrice(pokemon) {
+				if (pokemon.cardmarket && pokemon.cardmarket.prices && pokemon.cardmarket.prices.averageSellPrice) {
+					return pokemon.cardmarket.prices.averageSellPrice;
+				}
+				return NaN;
+			},
+			ordenarPokemon() {
+				this.pokemon.sort((a, b) => {
+					const priceA = this.getPokemonPrice(a);
+					const priceB = this.getPokemonPrice(b);
+
+					if (!isNaN(priceA) && !isNaN(priceB)) {
+						if (this.orden === 'asc') {
+							return priceA - priceB;
+						} else if (this.orden === 'desc') {
+							return priceB - priceA;
+						}
+						else {
+							this.fetchData()
+						}
+					}
+				});
+			},
+			Carta_modal(numero,totalSet,nombre,rareza){
+				this.crear_carta.code = numero + "/" + totalSet
+				this.crear_carta.name = nombre
+				this.crear_carta.rarity = rareza
+				console.log(this.crear_carta)
+
+			},
+		},
+	});
+</script>
+
+{% endblock js %}
