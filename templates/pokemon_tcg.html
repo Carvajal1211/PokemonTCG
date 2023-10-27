@@ -31,16 +31,40 @@
 		background-position: center center;
 		height: 100vh; /* Asegura que la imagen de fondo cubra toda la pantalla */
 	}
+	.fondo-con-imagen {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0, 0, 0, 0.5); /* Color de fondo con opacidad */
+		z-index: 9999; /* Asegura que esté en la parte superior de otros elementos */
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.imagen-de-fondo {
+		max-width: 100%; /* Asegura que la imagen no sea más ancha que la pantalla */
+		max-height: 100%; /* Asegura que la imagen no sea más alta que la pantalla */
+		display: block;
+	}
 
 </style>
 {% endblock css %}
 
 {% block content %}
 <div id="app">
+	<div v-if="loading" class="fondo-con-imagen">
+		<img src="/static/images/Poké_Ball_icon.svg.png" alt="Imagen de fondo" class="imagen-de-fondo" />
+	</div>
 	<div class="container">
 		<!-- container starts -->
 		<template>
 			<div>
+				<p>{{user.id}}</p>
+				<p>{{user.username}}</p>
+
 			  <label>Buscador pokemon</label>
 			  <div class="input-group mb-3">
 				<input type="text" v-model="pokemon_name" @keyup.enter="fetchData()" class="form-control" placeholder="Buscar pokemon" aria-label="" aria-describedby="basic-addon1">
@@ -66,12 +90,18 @@
 					  </div>
 					  <div class="row">
 						<div class="col-12">
+							
 						  <h6 class="d-block pb-2 fs-4" style="font-size: 13px">[[ poke.name ]] [[poke.number]]/[[poke.set.printedTotal]]</h6>
 						  <h6 class="d-block pb-2 fs-4" style="font-size: 13px">
-							Precio: [[ chilean_pesos(poke.cardmarket) && chilean_pesos(poke.cardmarket.prices) && chilean_pesos(poke.cardmarket.prices.averageSellPrice) || 'Estamos trabajando para usted' ]]
+							Precio: [[formatPrice(poke.precio_mas_bajo) ? formatPrice(poke.precio_mas_bajo) + ' CLP' : 'Aun no hay publicaciones' ]]
+
 						  </h6>
-						  <button type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white" style="background-color: green;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small)">
+
+						  <button v-if="poke.precio_mas_bajo" type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white" style="background-color: green;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
 							Vender
+						  </button>
+						  <button v-else type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white" style="background-color: red;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
+							Aun no hay publicaciones
 						  </button>
 						</div>
 					  </div>
@@ -87,23 +117,43 @@
 				  <div class="modal-content">
 					<div class="modal-header">
 		
-					  <h5 class="modal-title" id="exampleModalLabel" >Lorem ipsum dolor sit amet.</h5>
+					  <h5 class="modal-title" id="exampleModalLabel" >precios_historial</h5>
 					  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
-					<div class="col-12 py-3">
+					<div class="col-12  p-5">
 					  <form class="position-relative w-100">
 						<div class="row">
 							 <div class="col-12 col-md-6 mb-2">
 								<label for="rut" class="form-label">Precio :</label>
 								<input type="text" class="form-control" v-model=crear_carta.precio>
 							</div>
-
 						</div>
-						
 					  </form>
+					  <h6>Precio referencia TCGPlayer: [[ crear_carta.TCGPlayer]]USD //[[chilean_pesos(crear_carta.TCGPlayer)]]CLP</h6>
 					</div>
+					<div class="table-responsive p-5">
+						<caption>Cartas Publicadas</caption>
+						<table class="table">
+						  <thead>
+							<tr>
+							  <th>Fecha</th>
+							  <th>Precio</th>
+							  <th>Estado</th>
+
+							</tr>
+						  </thead>
+						  <tbody>
+							<!-- Aquí puedes iterar sobre los precios y fechas para mostrar el historial -->
+							<tr v-for="historial in precios_historial">
+								<td>[[ formatearFecha(historial.fecha_publicacion) ]]</td>
+								<td>[[ formatPrice(historial.precio) ]]</td>
+								<td style="color: green;">Disponible</td>
+							</tr>
+						  </tbody>
+						</table>
+					  </div>
 					<div class="modal-footer">
-					  <button type="button" class="btn btn-primary" @click="Crear_carta()" >Publicar Carta</button>
+					  <button type="button" class="btn btn-primary" @click="createCard()" >Publicar Carta</button>
 					</div>
 				  </div>
 				</div>
@@ -134,34 +184,12 @@
 			pokemon_name: "",
 			crear_carta: [
 			],
-			rarezaDict:{
-				"Amazing Rare": "Increíble Rara",
-				"Common": "Común",
-				"LEGEND": "LEYENDA",
-				"Promo": "Promocional",
-				"Rare": "Rara",
-				"Rare ACE": "Rara ACE",
-				"Rare BREAK": "Rara BREAK",
-				"Rare Holo": "Rara Holo",
-				"Rare Holo EX": "Rara Holo EX",
-				"Rare Holo GX": "Rara Holo GX",
-				"Rare Holo LV.X": "Rara Holo LV.X",
-				"Rare Holo Star": "Rara Holo Estrella",
-				"Rare Holo V": "Rara Holo V",
-				"Rare Holo VMAX": "Rara Holo VMAX",
-				"Rare Prime": "Rara Prime",
-				"Rare Prism Star": "Rara Estrella Prisma",
-				"Rare Rainbow": "Rara Arcoíris",
-				"Rare Secret": "Rara Secreta",
-				"Rare Shining": "Rara Brillante",
-				"Rare Shiny": "Rara Brillante",
-				"Rare Shiny GX": "Rara Brillante GX",
-				"Rare Ultra": "Rara Ultra",
-				"Uncommon": "Poco Común"
-			},
 			currentPage: 1,
  			perPage: 10,
 			orden: 'asc',
+			user_id:"",
+			precios_historial:[],
+			loading:false
 			}
 			
 		},
@@ -181,34 +209,72 @@
 		methods: {
 			changePage(newPage) {
 				this.currentPage = newPage;
+
 			},
-			fetchData() {
+			formatearFecha(fecha) {
+				if (fecha) {
+					// Parsea la fecha y obtén solo la parte de la fecha (sin la hora)
+					const fechaFormateada = new Date(fecha).toLocaleDateString();
+					return fechaFormateada;
+				}
+				return ''; // Devuelve una cadena vacía si la fecha es nula o indefinida
+			},
+			async verificarExistenciaEnBaseDeDatos(code) {
+				try {
+					const apiUrl = '/api/verificar-existencia/';
+					const data = { code: code };
+
+					const response = await axios.post(apiUrl, data);
+					console.log(response.data.precio_mas_bajo)
+					
+					return (response.data.precio_mas_bajo)
+				} catch (error) {
+					console.error("Error al verificar existencia en la base de datos:", error);
+					return false;
+				}
+				},
+			
+			async fetchData() {
+				this.loading = true
 				const apiUrl = `https://api.pokemontcg.io/v2/cards?q=name:${this.pokemon_name}`;
 				const apiKey = "1b329673-ded5-44d8-a42d-5187f70139e9";
-			
 				const headers = {
 					"X-Api-Key": apiKey,
 				};
-			
-					axios
-					.get(apiUrl, { headers })
-					.then((response) => {
+				try {
+					const response = await axios.get(apiUrl, { headers });
 					if (response.data && response.data.data && response.data.data.length > 0) {
-						this.pokemon = response.data.data;
-						console.log(this.pokemon);
-						// const precio = this.pokemon.cardmarket.prices.averageSellPrice * 800
-						// if (precio == null){
-						// 	const precio = this.pokemon.tcgplayer.prices.holofoil.market
-						// }
-					} else {
-						console.log("No se han encontrado Pokémon");
+					this.pokemon = response.data.data;
+					console.log(this.pokemon);
+
+					for (const carta of this.pokemon) {
+						const code = carta.number + "/" + carta.set.printedTotal;
+						const existeEnBaseDeDatos = await this.verificarExistenciaEnBaseDeDatos(code);
+
+						// Agregar el campo "existe" a la carta y marcarlo
+						carta.precio_mas_bajo = existeEnBaseDeDatos;
 					}
-					})
-					.catch((error) => {
-					console.error("Error:", error);
-					// Manejar el error aquí
-					});
-			},
+					this.loading = false
+					} else {
+					console.log("No se han encontrado Pokémon");
+					}
+				} catch (error) {
+					console.error("Error al obtener información de cartas:", error);
+				}
+				},
+				formatPrice(clp){
+					if (typeof clp === 'string' && !isNaN(clp)) {
+						clp = parseFloat(clp); 
+					}
+
+					if (typeof clp === 'number' && !isNaN(clp)) {
+
+						return clp.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+					} else {
+						return "Entrada no válida"; 
+					}
+
+				},
 			chilean_pesos(usd) {
 			if (typeof usd === 'string' && !isNaN(usd)) {
 				usd = parseFloat(usd); 
@@ -228,16 +294,44 @@
       }
       return NaN;
     },
-	Carta_modal(numero,totalSet,nombre,rareza,imagen){
+	async fetchPrices(code) {
+		const codigoCarta = code;  
+
+		try {
+		const apiUrl = '/api/precios/';
+		const data = { code: codigoCarta };
+		const response = await axios.post(apiUrl, data);
+		this.precios_historial = response.data
+		console.log(response.data);
+		} catch (error) {
+		console.error('Error al obtener precios:', error);
+		}
+	},
+	
+	Carta_modal(numero,totalSet,nombre,rareza,imagen,id,TCGPlayer){
+		
+		this.crear_carta = []
+		console.log(TCGPlayer)
+		this.crear_carta.TCGPlayer = TCGPlayer
 		this.crear_carta.code = numero + "/" + totalSet
 		this.crear_carta.name = nombre
 		this.crear_carta.rarity = rareza
 		this.crear_carta.image = imagen
+		this.crear_carta.user = id
+		this.fetchPrices(this.crear_carta.code)
 		console.log(this.crear_carta)
 	},
 	createCard() {
 		console.log(this.crear_carta)
-
+		const data = {
+			nombre: this.crear_carta.name,
+			rareza: this.crear_carta.rarity,
+			precio:this.crear_carta.precio,
+			version:"Normal",
+			imagen: this.crear_carta.image,
+			code: this.crear_carta.code,
+			usuario_id: this.crear_carta.user
+		};
 		
 		const header_data = {
 			'Content-Type': 'application/json'
@@ -249,13 +343,17 @@
 				// Comprobar si se registró correctamente o si hubo un error
 				if (response.data.message) {
 					// Mostrar mensaje de éxito
+					Swal.fire({
+						title: 'Carta creada exitosamente',
+						icon: 'success',
+						timer: 5000, // Duración de 5 segundos
+						showConfirmButton: true // No muestra el botón "OK"
+					}).then(() => {
+						window.location.reload();
+					});
 					console.log(response.data.message);
-					// Limpia los campos del formulario o realiza otras acciones necesarias
-					this.cardData.name = '';
-					this.cardData.collection = '';
-					// Limpia otros campos según sea necesario
+					
 				} else if (response.data.error) {
-					// Mostrar mensaje de error en el frontend
 					console.error(response.data.error);
 				}
 			});

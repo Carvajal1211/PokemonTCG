@@ -11,11 +11,15 @@ from core.api import *
 urlpatterns = [
     # URL's
     path('admin/', admin.site.urls),
+    path("", core_views.login, name="login"),
     path('pokemon_tcg/', core_views.Pokemon_tcg, name="pokemon_tcg"),
     path('pokemon_battle/', core_views.Pokemon_battle, name="pokemon_battle"),
     path('pokemon/', core_views.Pokemon, name="pokemon"),
     path('crear_carta/', core_views.CreadorCarta, name='crear_carta'),
-    path('api/crear_carta/',CrearCartaAPIView.as_view())
+    path('api/crear_carta/', login_required(CrearCartaAPIView.as_view()), name='crear_carta_api'),
+    path('api/verificar-existencia/', VerificarExistenciaEnBaseDeDatos.as_view(), name='verificar-existencia'),
+    path('api/precios/', PreciosPorCodigo.as_view(), name='precios-por-codigo'),
+
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
