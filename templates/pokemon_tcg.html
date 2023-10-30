@@ -93,13 +93,22 @@
 							
 						  <h6 class="d-block pb-2 fs-4" style="font-size: 13px">[[ poke.name ]] [[poke.number]]/[[poke.set.printedTotal]]</h6>
 						  <h6 class="d-block pb-2 fs-4" style="font-size: 13px">
-							Precio: [[formatPrice(poke.precio_mas_bajo) ? formatPrice(poke.precio_mas_bajo) + ' CLP' : 'Aun no hay publicaciones' ]]
+							Precio: [[formatPrice(poke.precio_mas_bajo) ? formatPrice(poke.precio_mas_bajo) : 'Aun no hay publicaciones' ]]
 
 						  </h6>
+						  <div class="row">
+							  <button v-if="poke.precio_mas_bajo" type="button" data-bs-toggle="modal" data-bs-target="#ComprarCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white my-2" style="background-color: green;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
+								Comprar
+							  </button>
+							  <button v-if="!poke.precio_mas_bajo" type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white my-2 disabled" style="background-color: red;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
+								Aun no hay publicaciones
+							  </button>
+							  <button  type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white my-2" style="background-color: green;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
+								Vender
+							  </button>
 
-						  <button v-if="poke.precio_mas_bajo" type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white" style="background-color: green;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
-							Vender
-						  </button>
+						  </div>
+						  
 						  <button v-else type="button" data-bs-toggle="modal" data-bs-target="#CrearCarta" class="btn btn-default btn-sm rounded-pill w-100 text-white" style="background-color: red;" @click="Carta_modal(poke.number,poke.set.printedTotal, poke.name,poke.rarity,poke.images.small,{{user.id}},poke.cardmarket.prices.averageSellPrice)">
 							Aun no hay publicaciones
 						  </button>
@@ -117,7 +126,7 @@
 				  <div class="modal-content">
 					<div class="modal-header">
 		
-					  <h5 class="modal-title" id="exampleModalLabel" >precios_historial</h5>
+					  <h5 class="modal-title" id="exampleModalLabel" >Publicar Carta</h5>
 					  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="col-12  p-5">
@@ -138,7 +147,7 @@
 							<tr>
 							  <th>Fecha</th>
 							  <th>Precio</th>
-							  <th>Estado</th>
+							  <!-- <th>Estado</th> -->
 
 							</tr>
 						  </thead>
@@ -147,7 +156,54 @@
 							<tr v-for="historial in precios_historial">
 								<td>[[ formatearFecha(historial.fecha_publicacion) ]]</td>
 								<td>[[ formatPrice(historial.precio) ]]</td>
-								<td style="color: green;">Disponible</td>
+								<!-- <td style="color: green;">Disponible</td> -->
+							</tr>
+						  </tbody>
+						</table>
+					  </div>
+					<div class="modal-footer">
+					  <button type="button" class="btn btn-primary" @click="createCard()" >Publicar Carta</button>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			  <!-- MODAL COMPRAR -->
+			  <div class="modal fade mt-5" id="ComprarCarta" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-xl">
+				  <div class="modal-content">
+					<div class="modal-header">
+		
+					  <h5 class="modal-title" id="exampleModalLabel" >Comprar Carta</h5>
+					  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="col-12  p-5">
+					  <form class="position-relative w-100">
+						<div class="row">
+							 <div class="col-12 col-md-6 mb-2">
+								<label for="rut" class="form-label">Precio :</label>
+								<input type="text" class="form-control" v-model=crear_carta.precio>
+							</div>
+						</div>
+					  </form>
+					  <h6>Precio referencia TCGPlayer: [[ crear_carta.TCGPlayer]]USD //[[chilean_pesos(crear_carta.TCGPlayer)]]CLP</h6>
+					</div>
+					<div class="table-responsive p-5">
+						<caption>Cartas Publicadas</caption>
+						<table class="table">
+						  <thead>
+							<tr>
+							  <th>Fecha</th>
+							  <th>Precio</th>
+							  <th>Anadir</th>
+
+							</tr>
+						  </thead>
+						  <tbody>
+							<!-- Aquí puedes iterar sobre los precios y fechas para mostrar el historial -->
+							<tr v-for="historial in precios_historial">
+								<td>[[ formatearFecha(historial.fecha_publicacion) ]]</td>
+								<td>[[ formatPrice(historial.precio) ]]</td>
+								<td @click="anadir_carro()" class="btn btn-primary" style="background-color: #F93A0B;" >Añadir al carrito</td>
 							</tr>
 						  </tbody>
 						</table>
@@ -211,6 +267,25 @@
 				this.currentPage = newPage;
 
 			},
+			anadir_carro(){
+				const preciosHistorial = [
+				{
+					TCGPlayer: 1.87,
+					code: "185/193",
+					image: "https://images.pokemontcg.io/sv2/185.png",
+					name: "Iono",
+					rarity: "Uncommon",
+					user: 2
+				},
+				// Otros objetos aquí...
+				];
+
+				// Convierte el array de objetos en formato JSON
+				const jsonPreciosHistorial = JSON.stringify(this.crear_carta);
+
+				// Guarda la cadena JSON en localStorage con una clave específica
+				localStorage.setItem('claveParaPrecios', jsonPreciosHistorial);
+			},
 			formatearFecha(fecha) {
 				if (fecha) {
 					// Parsea la fecha y obtén solo la parte de la fecha (sin la hora)
@@ -269,9 +344,9 @@
 
 					if (typeof clp === 'number' && !isNaN(clp)) {
 
-						return clp.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+						return clp.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' }) + "CLP";
 					} else {
-						return "Entrada no válida"; 
+						return "Aun no hay precios"; 
 					}
 
 				},
@@ -285,7 +360,7 @@
 
 				return usd.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
 			} else {
-				return "Entrada no válida"; 
+				return "Aun no hay precios"; 
 			}
 			},
 			getPokemonPrice(pokemon) {
